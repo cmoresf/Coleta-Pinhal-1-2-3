@@ -112,6 +112,20 @@ function exportXLSX(){
  XLSX.writeFile(wb,"Coleta_Pinhal_PLS_"+today()+".xlsx"); flash("Excel exportado");
 }
 
+
+function isoFromBr(v){v=String(v).trim(); if(/^\d{4}-\d{2}-\d{2}/.test(v))return v.slice(0,10); var m=v.match(/^(\d{2})\/(\d{2})\/(\d{4})/); return m?m[3]+"-"+m[2]+"-"+m[1]:"";}
+function importData(wb){var count=0;
+ function grab(sheet,keyFn){var ws=wb.Sheets[sheet]; if(!ws)return; var rows=XLSX.utils.sheet_to_json(ws,{defval:""}); rows.forEach(function(r){var k=keyFn(r); if(!k)return; var st=String(r["Status"]||"").trim(); if(STATUSES.indexOf(st)<0)return; var p={s:st}; if(r["Início"])p.i=isoFromBr(r["Início"]); if(r["Término"])p.t=isoFromBr(r["Término"]); if(r["Obs."])p.o=String(r["Obs."]); state.data[k]=Object.assign({},rec(k),p); count++;});}
+ grab("Habitação",function(r){if(r["Bloco"]===""||r["Item"]==="")return null; var un=String(r["Unidade"]||"").trim(); if(un==="")un="—"; return "H|"+String(r["Bloco"])+"|"+String(r["Item"])+"|"+un;});
+ grab("INFRA",function(r){if(r["Condomínio"]===""||r["Item"]==="")return null; return "I|"+String(r["Condomínio"])+"|"+String(r["Item"]);});
+ grab("Gerais",function(r){if(r["Condomínio"]===""||r["Item"]==="")return null; return "G|"+String(r["Condomínio"])+"|"+String(r["Item"]);});
+ save(); render(); flash("Importados "+count+" itens");}
+function pickImport(){var inp=document.createElement("input"); inp.type="file"; inp.accept=".xlsx";
+ inp.onchange=function(e){var f=e.target.files[0]; if(!f)return; var rd=new FileReader();
+  rd.onload=function(){try{var wb=XLSX.read(new Uint8Array(rd.result),{type:"array"}); importData(wb);}catch(err){flash("Falha ao importar");}};
+  rd.readAsArrayBuffer(f);};
+ inp.click();}
+
 function Header(){var ov=overall();
  return el("div",{style:{background:T.bar,color:"#fff",padding:"14px 16px",position:"sticky",top:"0",zIndex:"20"}},
   el("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"}},
@@ -121,7 +135,7 @@ function Header(){var ov=overall();
     el("div",{style:{textAlign:"right"}},
      el("div",{style:{fontSize:"20px",fontWeight:"800",color:T.amber,lineHeight:"1"}},Math.round(ov.pct*100)+"%"),
      el("div",{style:{fontSize:"10px",color:"#aeb6bf"}},ov.conc+"/"+ov.app+" itens")),
-    el("button",{style:{background:T.amber,color:"#1b1400",fontWeight:"800",fontSize:"12px",border:"none",borderRadius:"8px",padding:"8px 12px",cursor:"pointer"},onClick:exportXLSX},"Exportar"))),
+    el("div",{style:{display:"flex",flexDirection:"column",gap:"4px"}},el("button",{style:{background:T.amber,color:"#1b1400",fontWeight:"800",fontSize:"11px",border:"none",borderRadius:"7px",padding:"6px 10px",cursor:"pointer"},onClick:exportXLSX},"Exportar"),el("button",{style:{background:"#2b3038",color:"#fff",fontWeight:"700",fontSize:"11px",border:"1px solid #454b54",borderRadius:"7px",padding:"6px 10px",cursor:"pointer"},onClick:pickImport},"Importar")))),
   el("div",{style:{marginTop:"10px"}},Bar(ov.pct,T.amber,6)));}
 
 function Crumb(){var n=state.nav; if(n.screen==="home")return null;
