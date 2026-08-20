@@ -204,19 +204,34 @@ function CondView(){var wrap=el("div",{style:{padding:"16px"}}); wrap.append(Eye
    Bar(p,p>=1?T.st["Concluído"]:T.amber,6)));});
  wrap.append(grid); return wrap;}
 
-function BlocoView(){var wrap=el("div",{style:{padding:"16px"}}); wrap.append(Eyebrow("Serviços · Bloco "+state.nav.bloco));
+function BlocoView(){
+ var wrap=el("div",{style:{padding:"16px"}});
+ wrap.append(Eyebrow("Serviços · Bloco "+state.nav.bloco));
+ var search=el("input",{type:"search",placeholder:"Buscar serviço, código ou grupo…",style:{width:"100%",marginTop:"10px",fontSize:"14px",padding:"10px 12px",border:"1px solid "+T.line,borderRadius:"10px",background:"#fff",color:T.ink}});
+ wrap.append(search);
+ var empty=el("div",{style:{padding:"18px 4px",color:T.mut,fontSize:"13px",display:"none"}},"Nenhum serviço encontrado.");
+ wrap.append(empty);
  var box=el("div",{style:{marginTop:"12px",display:"grid",gap:"16px"}});
- HGRUPOS.forEach(function(gp){var servs=HAB.filter(s=>s.g===gp.g); if(!servs.length)return;
-  var sec=el("div",{},el("div",{style:{fontSize:"12px",fontWeight:"800",color:T.tip.BLOCO,textTransform:"uppercase",letterSpacing:"0.6px",marginBottom:"8px"}},gp.g+". "+gp.name));
-  var list=el("div",{style:{display:"grid",gap:"8px"}});
-  servs.forEach(function(s){var its=HAB_ITEMS.filter(i=>i.bloco===state.nav.bloco&&i.code===s.code); var p=pctOf(its); var col=T.tip[s.tipo];
-   list.append(el("button",{style:{textAlign:"left",background:T.card,border:"1px solid "+T.line,borderLeft:"4px solid "+col,borderRadius:"10px",padding:"10px 12px",cursor:"pointer"},onClick:function(){go({screen:"servico",cond:state.nav.cond,bloco:state.nav.bloco,code:s.code});}},
+ var rows=[],sections=[];
+ HGRUPOS.forEach(function(gp){var servs=HAB.filter(function(s){return s.g===gp.g;}); if(!servs.length)return;
+  var header=el("div",{style:{fontSize:"12px",fontWeight:"800",color:T.tip.BLOCO,textTransform:"uppercase",letterSpacing:"0.6px",marginBottom:"8px"}},gp.g+". "+gp.name);
+  var list=el("div",{style:{display:"grid",gap:"8px"}}); var secRows=[];
+  servs.forEach(function(s){var its=HAB_ITEMS.filter(function(i){return i.bloco===state.nav.bloco&&i.code===s.code;}); var p=pctOf(its); var col=T.tip[s.tipo];
+   var btn=el("button",{style:{textAlign:"left",background:T.card,border:"1px solid "+T.line,borderLeft:"4px solid "+col,borderRadius:"10px",padding:"10px 12px",cursor:"pointer",width:"100%"},onClick:function(){go({screen:"servico",cond:state.nav.cond,bloco:state.nav.bloco,code:s.code});}},
     el("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"}},
      el("div",{style:{paddingRight:"8px"}},el("div",{style:{fontSize:"13px",fontWeight:"700"}},s.code+" "+s.name),
       el("div",{style:{fontSize:"10px",color:T.mut,marginTop:"2px"}},s.tipo+(s.tipo==="BLOCO"?"":" · por andar")+" · "+p.conc+"/"+p.app)),
-     el("div",{style:{display:"flex",alignItems:"center",gap:"8px"}},el("span",{style:{fontSize:"13px",fontWeight:"800",color:p.pct>=1?T.st["Concluído"]:T.mut}},Math.round(p.pct*100)+"%"),el("span",{style:{color:T.mut,fontSize:"17px"}},"›")))));});
-  sec.append(list); box.append(sec);});
- wrap.append(box); return wrap;}
+     el("div",{style:{display:"flex",alignItems:"center",gap:"8px"}},el("span",{style:{fontSize:"13px",fontWeight:"800",color:p.pct>=1?T.st["Concluído"]:T.mut}},Math.round(p.pct*100)+"%"),el("span",{style:{color:T.mut,fontSize:"17px"}},"›"))));
+   list.append(btn); var ref={el:btn,text:(s.code+" "+s.name+" "+gp.name).toLowerCase()}; rows.push(ref); secRows.push(ref);});
+  var sec=el("div",{},header,list); box.append(sec); sections.push({el:sec,rows:secRows});});
+ wrap.append(box);
+ function filter(){var q=search.value.trim().toLowerCase(); var terms=q?q.split(/\s+/):[]; var visible=0;
+  rows.forEach(function(r){var show=terms.every(function(t){return r.text.indexOf(t)>=0;}); r.el.style.display=show?"":"none"; if(show)visible++;});
+  sections.forEach(function(sc){var any=sc.rows.some(function(r){return r.el.style.display!=="none";}); sc.el.style.display=any?"":"none";});
+  empty.style.display=visible?"none":"block";}
+ search.addEventListener("input",filter);
+ return wrap;
+}
 
 function ServicoView(){var s=HAB.find(x=>x.code===state.nav.code); var units=unitsOf(s.tipo);
  var its=units.map(u=>({unit:u,id:"H|"+state.nav.bloco+"|"+s.code+"|"+u}));
