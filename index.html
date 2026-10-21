@@ -109,7 +109,7 @@ function exportXLSX(){
  res.push([]); var oi=pctOf(INF_ITEMS); res.push(["INFRA (geral)",oi.pct.toFixed(4),oi.conc+"/"+oi.app]);
  CONDS.forEach(function(c){var p=pctOf(INF_ITEMS.filter(i=>i.cond===c.n)); res.push(["  "+c.n,p.pct.toFixed(4),p.conc+"/"+p.app]);});
  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(res),"Resumo");
- XLSX.writeFile(wb,"Coleta_Pinhal_PLS_"+today()+".xlsx"); flash("Excel exportado");
+ var __fn="Coleta_Pinhal_PLS_"+today()+".xlsx";var __arr=XLSX.write(wb,{type:"array",bookType:"xlsx"});var __b=new Blob([__arr],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});function __dl(){try{var u=URL.createObjectURL(__b);var a=document.createElement("a");a.href=u;a.download=__fn;document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u);},1200);flash("Exportado");}catch(e){flash("Falha ao exportar");}}try{if(navigator.canShare){var __f=new File([__b],__fn,{type:__b.type});if(navigator.canShare({files:[__f]})){navigator.share({files:[__f],title:__fn}).then(function(){flash("Exportado");}).catch(function(){__dl();});}else{__dl();}}else{__dl();}}catch(e){__dl();}
 }
 
 
@@ -127,7 +127,7 @@ function pickImport(){var inp=document.createElement("input"); inp.type="file"; 
  inp.click();}
 
 function Header(){var ov=overall();
- return el("div",{style:{background:T.bar,color:"#fff",padding:"14px 16px",position:"sticky",top:"0",zIndex:"20"}},
+ return el("div",{style:{background:T.bar,color:"#fff",padding:"14px 16px",paddingTop:"calc(env(safe-area-inset-top, 0px) + 14px)",position:"sticky",top:"0",zIndex:"20"}},
   el("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"}},
    el("div",{},el("div",{style:{fontSize:"15px",fontWeight:"800"}},"Parque do Pinhal"),
     el("div",{style:{fontSize:"11px",color:"#aeb6bf",letterSpacing:"1px",textTransform:"uppercase",fontWeight:"700"}},"Coleta de campo · PLS")),
