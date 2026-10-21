@@ -1,4 +1,4 @@
-const C = "pinhal-v6";
+const C = "pinhal-v7";
 const ASSETS = ["./", "./index.html", "./icon.png"];
 self.addEventListener("install", e => { self.skipWaiting();
   e.waitUntil(caches.open(C).then(c => c.addAll(ASSETS))); });
